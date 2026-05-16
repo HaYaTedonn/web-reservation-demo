@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1f6f6a">
+<title>ネット予約（デモ）｜SALON LUMINA</title>
+<style>
+  :root{
+    --bg:#f4f1ea; --card:#fffefb; --ink:#222826; --soft:#5c6360; --faint:#959b97;
+    --teal:#1f6f6a; --teal-deep:#16524e; --teal-tint:#e3efed; --gold:#b78a36;
+    --line:#e6e2d8; --ok:#2e8b6f; --warn:#c98a2e; --ng:#bf6a5a;
+    --serif:"Hiragino Mincho ProN","Yu Mincho","游明朝",serif;
+    --sans:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+    --shadow:0 1px 2px rgba(34,40,38,.05),0 10px 30px rgba(34,40,38,.09);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:var(--sans);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;
+    background:radial-gradient(circle at 50% -10%,#fbfaf6 0,transparent 40%),var(--bg);min-height:100vh}
+  .wrap{max-width:480px;margin:0 auto;padding:0 0 40px;min-height:100vh;position:relative}
+  @media(min-width:540px){ body{padding:26px 0} .wrap{box-shadow:var(--shadow);border-radius:22px;overflow:hidden;background:var(--bg);min-height:auto} }
+
+  .hero{background:linear-gradient(155deg,var(--teal),var(--teal-deep));color:#fff;padding:26px 24px 22px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.07)}
+  .hero .demochip{position:absolute;top:16px;right:16px;font-size:10px;letter-spacing:.16em;font-weight:700;background:rgba(255,255,255,.2);padding:3px 9px;border-radius:99px}
+  .hero .en{font-family:var(--serif);font-size:12px;letter-spacing:.3em;opacity:.85;margin:0}
+  .hero h1{font-family:var(--serif);font-size:26px;margin:3px 0 2px;letter-spacing:.04em}
+  .hero p{margin:6px 0 0;font-size:12.5px;opacity:.92}
+
+  .steps{display:flex;gap:6px;padding:16px 24px 0}
+  .steps .s{flex:1;height:4px;border-radius:99px;background:var(--line)}
+  .steps .s.on{background:var(--teal)}
+  .stepnum{padding:14px 24px 0;font-size:11px;letter-spacing:.1em;color:var(--teal);font-weight:700}
+
+  .sec{padding:6px 24px 0}
+  .sec h2{font-family:var(--serif);font-size:19px;margin:6px 0 3px}
+  .sec .lead{font-size:12.5px;color:var(--soft);margin:0 0 14px}
+
+  /* service cards */
+  .svc{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 11px;cursor:pointer;transition:transform .12s,border-color .12s;width:100%;text-align:left;font-family:var(--sans)}
+  .svc:hover{border-color:var(--teal)}
+  .svc:active{transform:scale(.99)}
+  .svc .nm{font-weight:700;font-size:15px;margin:0}
+  .svc .ds{font-size:11.5px;color:var(--faint);margin:1px 0 0}
+  .svc .meta{margin-left:auto;text-align:right;flex:none}
+  .svc .pr{font-family:var(--serif);font-size:17px;color:var(--teal-deep);font-weight:700}
+  .svc .mn{font-size:11px;color:var(--faint)}
+
+  /* date chips */
+  .dates{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 24px 0}
+  .date{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;cursor:pointer;font-family:var(--sans);transition:border-color .12s}
+  .date:hover{border-color:var(--teal)}
+  .date.sel{border-color:var(--teal);background:var(--teal-tint)}
+  .date.closed{opacity:.4;cursor:not-allowed}
+  .date .d{font-size:16px;font-weight:700}
+  .date .w{font-size:10.5px;color:var(--faint)}
+  .date .w.sat{color:#3b6fb0}.date .w.sun{color:#bf6a5a}
+  .date .mk{font-size:14px;margin-top:3px}
+  .mk.ok{color:var(--ok)}.mk.warn{color:var(--warn)}.mk.ng{color:var(--ng)}
+
+  /* time slots */
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 24px 0}
+  .slot{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 4px;text-align:center;cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:700;transition:border-color .12s}
+  .slot:hover{border-color:var(--teal)}
+  .slot.sel{border-color:var(--teal);background:var(--teal);color:#fff}
+  .empty{padding:30px 24px;text-align:center;color:var(--faint);font-size:13px}
+
+  /* form */
+  .field{padding:2px 24px 0}
+  .field label{display:block;font-size:12px;color:var(--soft);font-weight:700;margin:12px 0 5px}
+  .field label .req{color:var(--ng);font-size:10px;margin-left:4px}
+  .field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-family:var(--sans);font-size:15px;background:var(--card);color:var(--ink)}
+  .field input:focus,.field textarea:focus{outline:2px solid var(--teal-tint);border-color:var(--teal)}
+  .field textarea{resize:vertical;min-height:64px}
+
+  /* summary bar */
+  .summary{background:var(--teal-tint);border:1px solid #cfe3e0;border-radius:14px;margin:14px 24px 0;padding:13px 16px}
+  .summary .r{display:flex;justify-content:space-between;font-size:13px;padding:2px 0}
+  .summary .r b{font-weight:700}
+  .summary .total{border-top:1px dashed #b6d3cf;margin-top:6px;padding-top:8px;font-family:var(--serif);font-size:17px;color:var(--teal-deep)}
+
+  .actions{padding:18px 24px 0;display:flex;gap:10px}
+  .btn{flex:1;border:0;border-radius:13px;padding:15px;font-family:var(--sans);font-weight:700;font-size:15px;cursor:pointer}
+  .btn.primary{background:var(--teal);color:#fff;box-shadow:0 6px 16px rgba(31,111,106,.3)}
+  .btn.primary:disabled{background:#b7c4c1;box-shadow:none;cursor:not-allowed}
+  .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--soft);flex:0 0 96px}
+  .btn:active{transform:scale(.99)}
+
+  /* done */
+  .done{padding:40px 30px;text-align:center}
+  .done .ck{width:84px;height:84px;border-radius:50%;background:var(--teal);display:grid;place-items:center;margin:0 auto 18px;color:#fff;font-size:40px}
+  .done h2{font-family:var(--serif);font-size:23px;margin:0 0 6px}
+  .done p{font-size:13px;color:var(--soft);margin:0 0 18px}
+  .done .ticket{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:left;box-shadow:var(--shadow)}
+  .done .ticket .num{font-family:var(--serif);font-size:13px;color:var(--teal);letter-spacing:.1em}
+  .done .ticket .r{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--line)}
+  .done .ticket .r:last-child{border:0}
+  .done small{display:block;margin-top:18px;color:var(--faint);font-size:11.5px}
+
+  .foot{text-align:center;font-size:11px;color:var(--faint);padding:24px 24px 0;line-height:1.7}
+  .adminlink{color:var(--teal);text-decoration:none}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <span class="demochip">DEMO</span>
+    <p class="en" id="hEn">SALON LUMINA</p>
+    <h1 id="hName">サロン・ルミナ</h1>
+    <p id="hTag">ネット予約（24時間受付）</p>
+  </div>
+
+  <div class="steps"><div class="s on" id="st1"></div><div class="s" id="st2"></div><div class="s" id="st3"></div><div class="s" id="st4"></div></div>
+
+  <!-- STEP 1: service -->
+  <section id="step1">
+    <div class="stepnum">STEP 1 / 4</div>
+    <div class="sec"><h2>メニューを選ぶ</h2><p class="lead">ご希望のメニューをお選びください。</p></div>
+    <div class="sec" id="svcList" style="padding-top:0"></div>
+  </section>
+
+  <!-- STEP 2: date -->
+  <section id="step2" class="hidden">
+    <div class="stepnum">STEP 2 / 4</div>
+    <div class="sec"><h2>日付を選ぶ</h2><p class="lead" id="d2lead">空き状況：◯ 空きあり／△ 残りわずか／× 満／休 定休</p></div>
+    <div class="dates" id="dateList"></div>
+    <div class="actions"><button class="btn ghost" onclick="go(1)">戻る</button></div>
+  </section>
+
+  <!-- STEP 3: time -->
+  <section id="step3" class="hidden">
+    <div class="stepnum">STEP 3 / 4</div>
+    <div class="sec"><h2>時間を選ぶ</h2><p class="lead" id="t3lead"></p></div>
+    <div class="slots" id="slotList"></div>
+    <div class="empty hidden" id="slotEmpty">この日は空き枠がありません。別の日をお選びください。</div>
+    <div class="actions"><button class="btn ghost" onclick="go(2)">戻る</button></div>
+  </section>
+
+  <!-- STEP 4: form -->
+  <section id="step4" class="hidden">
+    <div class="stepnum">STEP 4 / 4</div>
+    <div class="sec"><h2>お客様情報</h2><p class="lead">ご予約内容をご確認のうえ、ご入力ください。</p></div>
+    <div class="summary" id="summary"></div>
+    <div class="field">
+      <label>お名前<span class="req">必須</span></label><input id="fName" placeholder="山田 花子">
+      <label>電話番号<span class="req">必須</span></label><input id="fTel" placeholder="090-0000-0000" inputmode="tel">
+      <label>メールアドレス</label><input id="fMail" placeholder="example@mail.com" inputmode="email">
+      <label>ご要望（任意）</label><textarea id="fNote" placeholder="例）カラーは明るめ希望です"></textarea>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" onclick="go(3)">戻る</button>
+      <button class="btn primary" id="confirmBtn" onclick="submit()">この内容で予約する</button>
+    </div>
+  </section>
+
+  <!-- DONE -->
+  <section id="done" class="hidden">
+    <div class="done">
+      <div class="ck">✓</div>
+      <h2>ご予約ありがとうございます</h2>
+      <p>確認のため、内容を控えてください。<br>（実装版では確認メール／LINEを自動送信します）</p>
+      <div class="ticket" id="ticket"></div>
+      <small>※ これは提案用のデモです（架空の店舗・データ）。</small>
+      <div class="actions"><button class="btn primary" onclick="restart()">最初に戻る</button></div>
+    </div>
+  </section>
+
+  <p class="foot">
+    提案用デモ ・ お店側の画面 → <a class="adminlink" href="admin.html" target="_blank">予約管理ダッシュボードを見る</a><br>
+    © 2026 鈴木颯. 無断複製・転用を禁じます。
+  </p>
+</div>
+
+<script src="assets/data.js"></script>
+<script>
+let sel = { serviceId:null, date:null, time:null };
+
+function setStepBar(n){ for(let i=1;i<=4;i++){ document.getElementById('st'+i).classList.toggle('on', i<=n); } }
+function go(step){
+  ['step1','step2','step3','step4','done'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  if(step==='done'){ document.getElementById('done').classList.remove('hidden'); window.scrollTo({top:0,behavior:'smooth'}); return; }
+  document.getElementById('step'+step).classList.remove('hidden');
+  setStepBar(step);
+  if(step===2) drawDates();
+  if(step===3) drawSlots();
+  if(step===4) drawSummary();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* header from config */
+document.getElementById('hEn').textContent=RDB.CONFIG.shopName;
+document.getElementById('hName').textContent=RDB.CONFIG.shopNameJa;
+document.getElementById('hTag').textContent=RDB.CONFIG.tagline;
+document.title='ネット予約（デモ）｜'+RDB.CONFIG.shopName;
+
+/* STEP1 */
+function drawServices(){
+  const w=document.getElementById('svcList'); w.innerHTML="";
+  RDB.SERVICES.forEach(s=>{
+    const b=document.createElement('button'); b.className='svc';
+    b.onclick=()=>{ sel.serviceId=s.id; sel.time=null; go(2); };
+    b.innerHTML=`<div><p class="nm">${s.name}</p><p class="ds">${s.desc}</p></div>
+      <div class="meta"><div class="pr">¥${s.price.toLocaleString()}</div><div class="mn">約${s.min}分</div></div>`;
+    w.appendChild(b);
+  });
+}
+
+/* STEP2 */
+function drawDates(){
+  const svc=RDB.getService(sel.serviceId);
+  const w=document.getElementById('dateList'); w.innerHTML="";
+  RDB.nextDates(12).forEach(ds=>{
+    const wd=RDB.weekdayJa(ds), closed=RDB.isClosed(ds);
+    const st=RDB.dayStatus(ds, sel.serviceId);
+    const day=ds.split('-')[2];
+    const el=document.createElement('div'); el.className='date'+(closed?' closed':'')+(sel.date===ds?' sel':'');
+    const wcls = wd==='土'?'sat':wd==='日'?'sun':'';
+    const mkcls = st.mark==='◯'?'ok':st.mark==='△'?'warn':'ng';
+    el.innerHTML=`<div class="d">${+day}</div><div class="w ${wcls}">(${wd})</div><div class="mk ${mkcls}">${st.mark}</div>`;
+    if(!closed && st.mark!=='×'){ el.onclick=()=>{ sel.date=ds; sel.time=null; go(3); }; }
+    w.appendChild(el);
+  });
+}
+
+/* STEP3 */
+function drawSlots(){
+  const svc=RDB.getService(sel.serviceId);
+  document.getElementById('t3lead').textContent=`${RDB.getService(sel.serviceId).name}・${fmtDate(sel.date)}（所要 約${svc.min}分）`;
+  const slots=RDB.availableSlots(sel.date, sel.serviceId);
+  const w=document.getElementById('slotList'); w.innerHTML="";
+  document.getElementById('slotEmpty').classList.toggle('hidden', slots.length>0);
+  slots.forEach(t=>{
+    const el=document.createElement('div'); el.className='slot'+(sel.time===t?' sel':'');
+    el.textContent=t; el.onclick=()=>{ sel.time=t; go(4); };
+    w.appendChild(el);
+  });
+}
+
+/* STEP4 */
+function drawSummary(){
+  const svc=RDB.getService(sel.serviceId);
+  document.getElementById('summary').innerHTML=
+    `<div class="r"><span>メニュー</span><b>${svc.name}</b></div>
+     <div class="r"><span>日時</span><b>${fmtDate(sel.date)} ${sel.time}</b></div>
+     <div class="r"><span>所要時間</span><b>約${svc.min}分</b></div>
+     <div class="r total"><span>料金</span><b>¥${svc.price.toLocaleString()}</b></div>`;
+}
+
+function submit(){
+  const name=document.getElementById('fName').value.trim();
+  const tel=document.getElementById('fTel').value.trim();
+  if(!name){ alert('お名前を入力してください'); return; }
+  if(!tel){ alert('電話番号を入力してください'); return; }
+  const b=RDB.addBooking({ date:sel.date, start:sel.time, serviceId:sel.serviceId,
+    name:name, tel:tel, email:document.getElementById('fMail').value.trim(), note:document.getElementById('fNote').value.trim() });
+  const svc=RDB.getService(sel.serviceId);
+  document.getElementById('ticket').innerHTML=
+    `<div class="num">予約番号 ${b.id}</div>
+     <div class="r"><span>お名前</span><b>${name} 様</b></div>
+     <div class="r"><span>メニュー</span><b>${svc.name}</b></div>
+     <div class="r"><span>日時</span><b>${fmtDate(sel.date)} ${sel.time}</b></div>
+     <div class="r"><span>料金</span><b>¥${svc.price.toLocaleString()}</b></div>`;
+  go('done');
+}
+function restart(){ sel={serviceId:null,date:null,time:null}; drawServices(); go(1); }
+
+function fmtDate(ds){ const p=ds.split('-'); return `${+p[1]}月${+p[2]}日(${RDB.weekdayJa(ds)})`; }
+
+drawServices(); setStepBar(1);
+</script>
+</body>
+</html>
