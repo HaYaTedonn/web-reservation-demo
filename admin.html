@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>予約管理（デモ）｜SALON LUMINA</title>
+<style>
+  :root{
+    --bg:#f1f0ea; --card:#fffefb; --panel:#f7f5ee; --ink:#222826; --soft:#5c6360; --faint:#959b97;
+    --teal:#1f6f6a; --teal-deep:#16524e; --teal-tint:#e3efed; --gold:#b78a36;
+    --line:#e3dfd5; --ok:#2e8b6f; --warn:#c98a2e; --ng:#bf6a5a;
+    --serif:"Hiragino Mincho ProN","Yu Mincho","游明朝",serif;
+    --sans:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+    --shadow:0 1px 2px rgba(34,40,38,.04),0 10px 28px rgba(34,40,38,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 20px 60px}
+  header{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .kick{font-size:11px;letter-spacing:.24em;color:var(--teal);font-weight:700;margin:0}
+  h1{font-family:var(--serif);font-size:25px;margin:2px 0 0}
+  .demochip{font-size:10px;letter-spacing:.16em;font-weight:700;color:#fff;background:var(--teal);padding:4px 10px;border-radius:99px}
+  .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:8px 14px;font-family:var(--sans);font-size:12.5px;color:var(--teal);font-weight:700;cursor:pointer}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 8px}
+  @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--shadow)}
+  .kpi.accent{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .kpi .l{font-size:11.5px;color:var(--soft)} .kpi.accent .l{color:rgba(255,255,255,.8)}
+  .kpi .v{font-family:var(--serif);font-size:28px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:16px;margin-top:18px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+  .panel h3{font-family:var(--serif);font-size:15px;margin:0 0 2px}
+  .panel .sub{font-size:11.5px;color:var(--faint);margin:0 0 14px}
+
+  .datebar{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin:0 0 12px}
+  .datebar::-webkit-scrollbar{height:0}
+  .dchip{flex:none;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 11px;text-align:center;cursor:pointer;font-size:12px}
+  .dchip.sel{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .dchip .d{font-weight:700;font-size:14px}.dchip .w{font-size:10px;opacity:.8}
+  .dchip .n{font-size:10px;margin-top:1px}
+
+  .bk{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .bk:last-child{border:0}
+  .bk .time{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--teal-deep);width:54px;flex:none;text-align:center}
+  .bk .info .nm{font-weight:700;font-size:14px}
+  .bk .info .meta{font-size:11.5px;color:var(--faint)}
+  .bk .svc{margin-left:auto;font-size:11.5px;background:var(--teal-tint);color:var(--teal-deep);padding:3px 9px;border-radius:99px;white-space:nowrap;flex:none}
+  .bk.cancel{opacity:.45}.bk.cancel .svc{background:#eee;color:#999}
+  .bk .x{border:1px solid var(--line);background:none;color:var(--ng);border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer;flex:none}
+  .empty{text-align:center;color:var(--faint);font-size:13px;padding:26px 0}
+
+  .bar{display:flex;align-items:center;gap:10px;margin:0 0 9px}
+  .bar .nm{width:96px;font-size:12px;color:var(--soft);flex:none;text-align:right}
+  .bar .track{flex:1;background:var(--panel);border-radius:7px;height:20px;position:relative;overflow:hidden}
+  .bar .fill{height:100%;background:linear-gradient(90deg,#3a9b94,var(--teal));border-radius:7px;width:0;transition:width .8s}
+  .bar .v{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:#fff}
+
+  .foot{font-size:11px;color:var(--faint);margin-top:30px;text-align:center;line-height:1.7}
+  .foot a{color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><p class="kick">SALON LUMINA — RESERVATION CONSOLE</p><h1>予約管理ダッシュボード</h1></div>
+    <span class="demochip">DEMO</span>
+    <div class="right"><button class="btn" onclick="resetDemo()">デモをリセット</button></div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi accent"><div class="l">本日の予約</div><div class="v" id="kToday">0</div></div>
+    <div class="kpi"><div class="l">今週の予約</div><div class="v" id="kWeek">0</div></div>
+    <div class="kpi"><div class="l">今週の売上（見込）</div><div class="v" id="kRev">¥0</div></div>
+    <div class="kpi"><div class="l">予約 累計</div><div class="v" id="kTotal">0</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>予約一覧</h3><p class="sub">日付を選ぶと、その日の予約が時間順に並びます。</p>
+      <div class="datebar" id="dateBar"></div>
+      <div id="bookingList"></div>
+    </div>
+    <div class="panel">
+      <h3>メニュー別の人気</h3><p class="sub">予約の多いメニュー</p>
+      <div id="svcBars"></div>
+      <h3 style="margin-top:18px">お店メモ</h3>
+      <p style="font-size:12px;color:var(--soft);margin:6px 0 0">実装版では、確認メール／LINE自動送信、リマインド通知、ドタキャン防止のための事前決済、Googleカレンダー連携なども追加できます。</p>
+    </div>
+  </div>
+
+  <p class="foot">
+    提案用デモ ・ お客様側の画面 → <a href="index.html" target="_blank">ネット予約ページを見る</a><br>
+    別タブで予約すると、同じブラウザのこの画面に反映されます。<br>
+    © 2026 鈴木颯. 無断複製・転用を禁じます。
+  </p>
+</div>
+
+<script src="assets/data.js"></script>
+<script>
+let selDate = RDB.ymd(new Date());
+
+function yen(n){ return '¥'+n.toLocaleString(); }
+
+function render(){
+  const s=RDB.stats();
+  document.getElementById('kToday').textContent=s.todayCount;
+  document.getElementById('kWeek').textContent=s.weekCount;
+  document.getElementById('kRev').textContent=yen(s.weekRevenue);
+  document.getElementById('kTotal').textContent=s.total;
+  drawDateBar(); drawBookings(); drawSvcBars(s);
+}
+
+function drawDateBar(){
+  const w=document.getElementById('dateBar'); w.innerHTML="";
+  RDB.nextDates(14).forEach(ds=>{
+    const wd=RDB.weekdayJa(ds);
+    const n=RDB.getBookings().filter(b=>b.date===ds && b.status!=='cancel').length;
+    const el=document.createElement('div'); el.className='dchip'+(selDate===ds?' sel':'');
+    el.onclick=()=>{ selDate=ds; render(); };
+    el.innerHTML=`<div class="d">${+ds.split('-')[2]}</div><div class="w">(${wd})</div><div class="n">${RDB.isClosed(ds)?'休':n+'件'}</div>`;
+    w.appendChild(el);
+  });
+}
+
+function drawBookings(){
+  const list=RDB.getBookings().filter(b=>b.date===selDate)
+    .sort((a,b)=>a.start.localeCompare(b.start));
+  const w=document.getElementById('bookingList'); w.innerHTML="";
+  if(list.length===0){ w.innerHTML=`<div class="empty">${RDB.isClosed(selDate)?'定休日です':'この日の予約はありません'}</div>`; return; }
+  list.forEach(b=>{
+    const svc=RDB.getService(b.serviceId);
+    const el=document.createElement('div'); el.className='bk'+(b.status==='cancel'?' cancel':'');
+    el.innerHTML=`<div class="time">${b.start}</div>
+      <div class="info"><div class="nm">${b.name} 様</div><div class="meta">${b.tel}${b.note?'・'+b.note:''}</div></div>
+      <span class="svc">${svc.name}・¥${svc.price.toLocaleString()}</span>
+      ${b.status==='cancel'?'<span style="font-size:11px;color:var(--ng);flex:none">取消済</span>':`<button class="x" onclick="cancel('${b.id}')">取消</button>`}`;
+    w.appendChild(el);
+  });
+}
+
+function drawSvcBars(s){
+  const w=document.getElementById('svcBars'); w.innerHTML="";
+  const max=Math.max(1,...RDB.SERVICES.map(v=>s.byService[v.id]||0));
+  RDB.SERVICES.slice().sort((a,b)=>(s.byService[b.id]||0)-(s.byService[a.id]||0)).forEach(v=>{
+    const n=s.byService[v.id]||0;
+    w.innerHTML+=`<div class="bar"><div class="nm">${v.name}</div><div class="track"><div class="fill" style="width:${n/max*100}%"><span class="v">${n}</span></div></div></div>`;
+  });
+}
+
+function cancel(id){
+  if(!confirm('この予約を取り消します。よろしいですか？')) return;
+  RDB.setStatus(id,'cancel'); render();
+}
+function resetDemo(){
+  if(!confirm('デモの予約データを初期状態に戻します。よろしいですか？')) return;
+  RDB.resetAll(); selDate=RDB.ymd(new Date()); render();
+}
+
+render();
+window.addEventListener('focus',render);
+window.addEventListener('storage',render);
+setInterval(render,4000);
+</script>
+</body>
+</html>
