@@ -3,7 +3,7 @@
 飲食店・サロン・クリニックなどの店舗向け **ネット予約システム** のデモです。
 お客様の予約から、店舗側の予約管理ダッシュボードまでを一通り体験できます。
 
-🔗 **ライブデモ:** https://hayatedonn.github.io/web-reservation-demo/
+**ライブデモ:** https://hayatedonn.github.io/web-reservation-demo/
 （店舗側の管理画面 → https://hayatedonn.github.io/web-reservation-demo/admin.html ）
 
 ## 主な機能
